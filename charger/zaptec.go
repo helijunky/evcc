@@ -334,7 +334,7 @@ func (c *Zaptec) phases1p3p(phases int) error {
 	}
 
 	c.log.DEBUG.Printf("updating current to trigger phase switch: %.1fA -> %.1fA\n", oldCurrent, newCurrent)
-	c.MaxCurrent(int64(newCurrent))
+	err = c.MaxCurrent(int64(newCurrent))
 	if err != nil {
 		return err
 	}
