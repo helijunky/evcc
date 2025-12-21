@@ -98,6 +98,8 @@ type API interface {
 
 	// EffectivePriority returns the effective priority
 	EffectivePriority() int
+	// EffectiveLimitSoc returns the effective session limit soc
+	EffectiveLimitSoc() int
 	// EffectivePlanId returns the effective plan id
 	EffectivePlanId() int
 	// EffectivePlanTime returns the effective plan time
@@ -159,9 +161,6 @@ type API interface {
 	GetBatteryBoost() int
 	// SetBatteryBoost sets the battery boost
 	SetBatteryBoost(enable bool) error
-
-	// RemoteControl sets remote status demand
-	RemoteControl(string, RemoteDemand)
 
 	//
 	// smart grid charging
