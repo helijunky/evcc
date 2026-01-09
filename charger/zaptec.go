@@ -266,7 +266,17 @@ func (c *Zaptec) sessionPriority(session string, data zaptec.SessionPriority) er
 
 // MaxCurrent implements the api.Charger interface
 func (c *Zaptec) MaxCurrent(current int64) error {
-	curr := int(current)
+	return c.MaxCurrentMillis(float64(current))
+}
+
+var _ api.ChargerEx = (*Zaptec)(nil)
+
+// MaxCurrentMillis implements the api.ChargerEx interface
+func (c *Zaptec) MaxCurrentMillis(current float64) error {
+	curr := math.Round(current*10) / 10 // round to 1 digit to avoid strange numbers
+	if curr < 0 || curr > 32 {
+		return fmt.Errorf("invalid current %.1f", curr)
+	}
 	data := zaptec.Update{
 		MaxChargeCurrent: &curr,
 	}
