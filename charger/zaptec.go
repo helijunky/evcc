@@ -274,12 +274,11 @@ var _ api.ChargerEx = (*Zaptec)(nil)
 
 // MaxCurrentMillis implements the api.ChargerEx interface
 func (c *Zaptec) MaxCurrentMillis(current float64) error {
-	curr := math.Round(current*10) / 10 // round to 1 digit to avoid strange numbers
-	if curr < 0 || curr > 32 {
-		return fmt.Errorf("invalid current %.1f", curr)
+	if current < 0 || current > 32 {
+		return fmt.Errorf("invalid current %.1f", current)
 	}
 	data := zaptec.Update{
-		MaxChargeCurrent: &curr,
+		MaxChargeCurrent: &current,
 	}
 
 	return c.chargerUpdate(data)
@@ -349,6 +348,7 @@ func (c *Zaptec) phases1p3p(phases int) error {
 	if oldCurrent <= 6 {
 		newCurrent = oldCurrent + 0.1
 	}
+	newCurrent = math.Round(newCurrent*10) / 10 // round to 1 digit to avoid strange numbers
 
 	c.log.DEBUG.Printf("updating current to trigger phase switch: %.1fA -> %.1fA\n", oldCurrent, newCurrent)
 	err = c.MaxCurrentMillis(newCurrent)
