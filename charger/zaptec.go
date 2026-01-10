@@ -45,7 +45,7 @@ type Zaptec struct {
 	log        *util.Logger
 	statusG    util.Cacheable[zaptec.StateResponse]
 	instance   zaptec.Charger
-	maxCurrent int
+	maxCurrent float64
 	version    int
 	enabled    bool
 	priority   bool
@@ -378,10 +378,11 @@ func (c *Zaptec) switchPhases(phases int) error {
 		data := zaptec.Update{
 			MaxChargePhases: &phases,
 		}
+
 		return c.chargerUpdate(data)
 	}
 
-	var zero int
+	var zero float64
 	data := zaptec.UpdateInstallation{
 		AvailableCurrentPhase1: &c.maxCurrent,
 		AvailableCurrentPhase2: &zero,
@@ -414,7 +415,7 @@ func (c *Zaptec) Identify() (string, error) {
 	return "", nil
 }
 
-func (c *Zaptec) getInstallationMaxCurrent() (int, error) {
+func (c *Zaptec) getInstallationMaxCurrent() (float64, error) {
 	var res zaptec.Installation
 
 	uri := fmt.Sprintf("%s/api/installation/%s", zaptec.ApiURL, c.instance.InstallationId)
@@ -422,7 +423,7 @@ func (c *Zaptec) getInstallationMaxCurrent() (int, error) {
 		return 0, err
 	}
 
-	return int(res.MaxCurrent), nil
+	return res.MaxCurrent, nil
 }
 
 func (c *Zaptec) installationUpdate(data zaptec.UpdateInstallation) error {
