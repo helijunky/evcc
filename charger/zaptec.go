@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"time"
@@ -330,7 +331,6 @@ func (c *Zaptec) Currents() (float64, float64, float64, error) {
 // phases1p3p implements the api.PhaseSwitcher interface
 func (c *Zaptec) phases1p3p(phases int) error {
 	err := c.switchPhases(phases)
-	//if err != nil || !c.priority {
 	if err != nil {
 		return err
 	}
@@ -344,13 +344,14 @@ func (c *Zaptec) phases1p3p(phases int) error {
 		return err
 	}
 
-	newCurrent := oldCurrent - 1
+	// adjust the current by +/- 0.1A; otherwise, the phase change will not happen
+	newCurrent := oldCurrent - 0.1
 	if oldCurrent <= 6 {
-		newCurrent = oldCurrent + 1
+		newCurrent = oldCurrent + 0.1
 	}
 
 	c.log.DEBUG.Printf("updating current to trigger phase switch: %.1fA -> %.1fA\n", oldCurrent, newCurrent)
-	err = c.MaxCurrent(int64(newCurrent))
+	err = c.MaxCurrentMillis(newCurrent)
 	if err != nil {
 		return err
 	}
@@ -364,11 +365,6 @@ func (c *Zaptec) phases1p3p(phases int) error {
 		PrioritizedPhases: &phases,
 	}
 
-	res, err = c.statusG.Get()
-	if err != nil {
-		return err
-	}
-
 	if session := res.ObservationByID(zaptec.SessionIdentifier); session != nil {
 		return c.sessionPriority(session.ValueAsString, data)
 	}
@@ -378,7 +374,7 @@ func (c *Zaptec) phases1p3p(phases int) error {
 
 func (c *Zaptec) switchPhases(phases int) error {
 	if c.version != zaptec.ZaptecGo2 {
-		c.log.DEBUG.Printf("switching to %d p\n", phases)
+		c.log.DEBUG.Printf("switching to %dp\n", phases)
 		data := zaptec.Update{
 			MaxChargePhases: &phases,
 		}
