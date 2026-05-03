@@ -81,9 +81,8 @@ type Update struct {
 }
 
 type Settings struct {
-	Id	     			 *int     `json:"id,omitempty"`
-	Int_Value			 *int	  `json:"value,omitempty"`
-	Float_Value			 *float64 `json:"value,omitempty"`
+	Id    *int `json:"id,omitempty"`
+	Value any  `json:"value,omitempty"`
 }
 
 type SessionPriority struct {

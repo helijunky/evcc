@@ -264,7 +264,7 @@ func (c *Zaptec) chargerSettings(data zaptec.Settings) error {
 
 	uri := fmt.Sprintf("%s/api/chargers/%s/settings", zaptec.ApiURL, c.instance.Id)
 
-	req, _ := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
+	req, _ := request.New(http.MethodPost, uri, request.MarshalJSON([]zaptec.Settings{data}), request.JSONEncoding)
 	_, err := c.DoBody(req)
 	if err == nil {
 		c.statusG.Reset()
@@ -296,7 +296,7 @@ func (c *Zaptec) MaxCurrentMillis(current float64) error {
 	current = math.Round(current*10) / 10
 	identifier := 510
 	data := zaptec.Settings{
-		Id: &identifier, Float_Value: &current,
+		Id: &identifier, Value: current,
 	}
 
 	return c.chargerSettings(data)
@@ -392,7 +392,7 @@ func (c *Zaptec) phases1p3p(phases int) error {
 func (c *Zaptec) switchPhases(phases int) error {
 	identifier := 520
 	data := zaptec.Settings{
-		Id: &identifier, Int_Value: &phases,
+		Id: &identifier, Value: phases,
 	}
 
 	return c.chargerSettings(data)
