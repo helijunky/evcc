@@ -77,7 +77,7 @@ type Update struct {
 	MinChargeCurrent     *float64 `json:"minChargeCurrent,omitempty"`
 	OfflineChargeCurrent *float64 `json:"offlineChargeCurrent,omitempty"`
 	OfflineChargePhase   *int     `json:"offlineChargePhase,omitempty"`
-	MeterValueInterval   *int     `json:"meterValueInterval,omitempty"`¨
+	MeterValueInterval   *int     `json:"meterValueInterval,omitempty"`
 }
 
 type Settings struct {
