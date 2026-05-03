@@ -17,6 +17,7 @@ import (
 	"github.com/evcc-io/evcc/util"
 	"github.com/samber/lo"
 	"go.yaml.in/yaml/v4"
+	"gorm.io/gorm"
 )
 
 var ErrNotFound = errors.New("not found")
@@ -34,12 +35,12 @@ var (
 )
 
 func init() {
-	db.Register(func() error {
-		if err := db.Instance.AutoMigrate(new(setting)); err != nil {
+	db.Register(func(db *gorm.DB) error {
+		if err := db.AutoMigrate(new(setting)); err != nil {
 			return err
 		}
 
-		return db.Instance.Find(&settings).Error
+		return db.Find(&settings).Error
 	})
 }
 
@@ -209,7 +210,7 @@ func DecodeOtherSliceOrMap(other, res any) error {
 	val := reflect.ValueOf(other)
 	typ := reflect.TypeOf(other)
 
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 		val = reflect.Indirect(val)
 	}

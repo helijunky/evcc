@@ -32,7 +32,7 @@ func init() {
 	registry.Add("keba-udp", NewKebaUdpFromConfig)
 }
 
-//go:generate go tool decorate -f decorateKebaUdp -b *KebaUdp -r api.Charger -t "api.Meter,CurrentPower,func() (float64, error)" -t "api.MeterEnergy,TotalEnergy,func() (float64, error)" -t "api.PhaseCurrents,Currents,func() (float64, float64, float64, error)"
+//go:generate go tool decorate -f decorateKebaUdp -b *KebaUdp -r api.Charger -t api.Meter,api.MeterEnergy,api.PhaseCurrents
 
 // NewKebaUdpFromConfig creates a new Keba UDP charger
 func NewKebaUdpFromConfig(other map[string]any) (api.Charger, error) {
@@ -147,7 +147,7 @@ func (c *KebaUdp) roundtrip(msg string, report int, res any) error {
 			if report == 0 {
 				// use reflection to write to simple string
 				rv := reflect.ValueOf(res)
-				if rv.Kind() != reflect.Ptr || rv.IsNil() || rv.Elem().Kind() != reflect.String {
+				if rv.Kind() != reflect.Pointer || rv.IsNil() || rv.Elem().Kind() != reflect.String {
 					return fmt.Errorf("invalid type: %s", reflect.TypeOf(res))
 				}
 
