@@ -296,7 +296,7 @@ func (c *Zaptec) MaxCurrentMillis(current float64) error {
 	current = math.Round(current*10) / 10
 	identifier := 510
 	data := zaptec.Settings{
-		Id: &identifier, Value: &current,
+		Id: &identifier, Float_Value: &current,
 	}
 
 	return c.chargerSettings(data)
