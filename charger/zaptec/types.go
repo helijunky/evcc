@@ -77,7 +77,13 @@ type Update struct {
 	MinChargeCurrent     *float64 `json:"minChargeCurrent,omitempty"`
 	OfflineChargeCurrent *float64 `json:"offlineChargeCurrent,omitempty"`
 	OfflineChargePhase   *int     `json:"offlineChargePhase,omitempty"`
-	MeterValueInterval   *int     `json:"meterValueInterval,omitempty"`
+	MeterValueInterval   *int     `json:"meterValueInterval,omitempty"`¨
+}
+
+type Settings struct {
+	Id	     			 *int     `json:"id,omitempty"`
+	Int_Value			 *int	  `json:"value,omitempty"`
+	Float_Value			 *float64 `json:"value,omitempty"`
 }
 
 type SessionPriority struct {

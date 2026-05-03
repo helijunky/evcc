@@ -246,6 +246,22 @@ func (c *Zaptec) chargerUpdate(data zaptec.Update) error {
 		}
 	}
 
+	uri := fmt.Sprintf("%s/api/chargers/%s/update", zaptec.ApiURL, c.instance.Id)
+
+	req, _ := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
+	_, err := c.DoBody(req)
+	if err == nil {
+		c.statusG.Reset()
+	}
+	return err
+}
+
+func (c *Zaptec) chargerSettings(data zaptec.Settings) error {
+	if c.passive {
+		c.log.DEBUG.Println("zaptec: passive mode: skipping chargerSettings with current fields set")
+		return nil
+	}
+
 	uri := fmt.Sprintf("%s/api/chargers/%s/settings", zaptec.ApiURL, c.instance.Id)
 
 	req, _ := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
@@ -278,11 +294,12 @@ var _ api.ChargerEx = (*Zaptec)(nil)
 // MaxCurrentMillis implements the api.ChargerEx interface
 func (c *Zaptec) MaxCurrentMillis(current float64) error {
 	current = math.Round(current*10) / 10
-	data := zaptec.Update{
-		id: 510, value: &current
+	identifier := 510
+	data := zaptec.Settings{
+		Id: &identifier, Value: &current,
 	}
 
-	return c.chargerUpdate(data)
+	return c.chargerSettings(data)
 }
 
 var _ api.Meter = (*Zaptec)(nil)
@@ -373,12 +390,12 @@ func (c *Zaptec) phases1p3p(phases int) error {
 }
 
 func (c *Zaptec) switchPhases(phases int) error {
-	data := zaptec.Update{
-		id: 520, value: &phases
+	identifier := 520
+	data := zaptec.Settings{
+		Id: &identifier, Int_Value: &phases,
 	}
 
-	return c.chargerUpdate(data)
-}
+	return c.chargerSettings(data)
 }
 
 var _ api.Identifier = (*Zaptec)(nil)
