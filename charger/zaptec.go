@@ -206,7 +206,7 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 	}
 	if err == nil && currentStatus == zaptec.OpModeConnectedRequesting && currentStatus != c.lastStatus {
 		current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
-		if err == nil && current == 0 {
+		if err == nil && current < 6 {
 			err = c.Enable(false)
 			err = c.MaxCurrentMillis(6)
 		}
