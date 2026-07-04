@@ -201,17 +201,16 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		return api.StatusA, err
 	}
 	currentStatus, err := res.ObservationByID(zaptec.ChargerOperationMode).Int()
-	if err == nil && currentStatus == zaptec.OpModeDisconnected && currentStatus != c.lastStatus {
-		err = c.MaxCurrentMillis(0)
+	if err != nil {
+		return api.StatusA, err
 	}
-	// if err == nil && currentStatus == zaptec.OpModeConnectedRequesting && currentStatus != c.lastStatus {
-	// 	current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
-	// 	if err == nil && current < 6 {
-	// 		err = c.Enable(false)
-	// 		err = c.MaxCurrentMillis(6)
-	// 	}
-	// }
-	if err == nil && currentStatus == zaptec.OpModeConnectedRequesting && currentStatus != c.lastStatus {
+
+	if currentStatus == zaptec.OpModeDisconnected && currentStatus != c.lastStatus {
+		c.enabled = false
+		err = c.MaxCurrentMillis(0)
+		return api.StatusA, err
+	}
+	if currentStatus == zaptec.OpModeConnectedRequesting && currentStatus != c.lastStatus {
 		go func() {
 			time.Sleep(time.Second * 5)
 			if !c.enabled {
@@ -220,14 +219,16 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		}()
 	}
 	c.lastStatus = currentStatus
-
 	switch currentStatus {
 	case zaptec.OpModeDisconnected:
 		return api.StatusA, err
 	case zaptec.OpModeConnectedRequesting, zaptec.OpModeConnectedFinished:
 		return api.StatusB, err
 	case zaptec.OpModeConnectedCharging:
-		return api.StatusC, err
+		if c.enabled {
+			return api.StatusC, err
+		}
+		return api.StatusB, err
 	default:
 		if err == nil {
 			err = fmt.Errorf("unknown status: %d", currentStatus)
@@ -238,8 +239,7 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 
 // Enabled implements the api.Charger interface
 func (c *Zaptec) Enabled() (bool, error) {
-	res, err := c.statusG.Get()
-	return c.enabled && !res.ObservationByID(zaptec.FinalStopActive).Bool(), err
+	return c.enabled, nil
 }
 
 // Enable implements the api.Charger interface
