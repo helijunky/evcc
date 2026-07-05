@@ -247,19 +247,10 @@ func (c *Zaptec) Enabled() (bool, error) {
 
 // Enable implements the api.Charger interface
 func (c *Zaptec) Enable(enable bool) error {
-	res2, err := c.statusG.Get()
-	if err == nil {
-		current, err := res2.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
-		if err == nil && current < 6 {
-			c.log.INFO.Printf("set charger into correct mode after plugin")
-			if enable {
-				c.log.INFO.Printf("start the charger")
-			} else {
-				c.log.INFO.Printf("pause the charger")
-			}
-			_ = c.Enable(enable) // set charger into correct mode (pause or start) after plugin
-			_ = c.MaxCurrentMillis(6)
-		}
+	if enable {
+		c.log.INFO.Printf("charger enable")
+	} else {
+		c.log.INFO.Printf("charger disable")
 	}
 	cmd := zaptec.CmdStopChargingFinal
 	if enable {
@@ -277,6 +268,20 @@ func (c *Zaptec) Enable(enable bool) error {
 	if err := c.DoJSON(req, &res); err == nil || res.Code == 528 {
 		c.enabled = enable
 		c.statusG.Reset()
+	}
+
+	res2, err := c.statusG.Get()
+	if err == nil {
+		current, err := res2.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
+		if err == nil && current < 6 {
+			c.log.INFO.Printf("set charger into correct mode after plugin")
+			if enable {
+				c.log.INFO.Printf("set current to 6A")
+				_ = c.MaxCurrentMillis(6)
+			} else {
+				c.log.INFO.Printf("charger paused, leaving current at 0A")
+			}
+		}
 	}
 
 	return nil
