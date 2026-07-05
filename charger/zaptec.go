@@ -260,7 +260,7 @@ func (c *Zaptec) Enabled() (bool, error) {
 
 // Enable implements the api.Charger interface
 func (c *Zaptec) Enable(enable bool) error {
-	lp_enabled = enable
+	c.lp_enabled = enable
 	cmd := zaptec.CmdStopChargingFinal
 	if enable {
 		cmd = zaptec.CmdResumeCharging
