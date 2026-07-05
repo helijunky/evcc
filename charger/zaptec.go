@@ -215,7 +215,12 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		current, err2 := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
 		if err2 == nil && current < 6 {
 			c.log.INFO.Printf("set charger into correct pause mode after plugin")
-			_ = c.Enable(false) // set charger into correct pause mode after plugin
+			if c.enabled {
+				c.log.INFO.Printf("starting charger")
+			} else {
+				c.log.INFO.Printf("pausing charger")
+			}
+			_ = c.Enable(c.enabled) // set charger into correct mode (pause or start) after plugin
 			_ = c.MaxCurrentMillis(6)
 		}
 	}
