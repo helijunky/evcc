@@ -211,17 +211,11 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		err = c.MaxCurrentMillis(0)
 		//return api.StatusA, err
 	}
-	if (currentStatus == zaptec.OpModeConnectedRequesting || currentStatus == zaptec.OpModeConnectedFinished) && currentStatus != c.lastStatus {
+	if currentStatus == zaptec.OpModeConnectedRequesting {
 		current, err2 := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
 		if err2 == nil && current < 6 {
 			c.log.INFO.Printf("set charger into correct pause mode after plugin")
-			if c.enabled {
-				c.log.INFO.Printf("starting charger")
-			} else {
-				c.log.INFO.Printf("pausing charger")
-			}
-			_ = c.Enable(c.enabled) // set charger into correct mode (pause or start) after plugin
-			_ = c.MaxCurrentMillis(6)
+			_ = c.Enable(false) // set charger into pause mode after plugin
 		}
 	}
 	c.lastStatus = currentStatus
@@ -231,12 +225,8 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		c.enabled = false
 		return api.StatusA, err
 	case zaptec.OpModeConnectedRequesting:
-		c.log.INFO.Printf("OpModeConnectedRequesting. Not changing enabled flag.")
-		if c.enabled {
-			c.log.INFO.Printf("enabled==true")
-		} else {
-			c.log.INFO.Printf("enabled==false")
-		}
+		c.log.INFO.Printf("OpModeConnectedRequesting. Setting enabled=false")
+		c.enabled = false
 		return api.StatusB, err
 	case zaptec.OpModeConnectedFinished:
 		c.log.INFO.Printf("OpModeConnectedFinished. Setting enabled=false")
