@@ -52,7 +52,6 @@ type Zaptec struct {
 	instance   zaptec.Charger
 	version    int
 	enabled    bool
-	lp_enabled bool
 	priority   bool
 	passive    bool
 	lastStatus int
@@ -212,19 +211,6 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		err = c.MaxCurrentMillis(0)
 		//return api.StatusA, err
 	}
-	if currentStatus == zaptec.OpModeConnectedRequesting || currentStatus == zaptec.OpModeConnectedFinished {
-		current, err2 := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
-		if err2 == nil && current < 6 {
-			c.log.INFO.Printf("set charger into correct mode after plugin")
-			if c.lp_enabled {
-				c.log.INFO.Printf("starting charger")
-			} else {
-				c.log.INFO.Printf("pausing charger")
-			}
-			_ = c.Enable(c.lp_enabled) // set charger into correct mode (pause or start) after plugin
-			_ = c.MaxCurrentMillis(6)
-		}
-	}
 	c.lastStatus = currentStatus
 	switch currentStatus {
 	case zaptec.OpModeDisconnected:
@@ -261,12 +247,17 @@ func (c *Zaptec) Enabled() (bool, error) {
 
 // Enable implements the api.Charger interface
 func (c *Zaptec) Enable(enable bool) error {
-	if enable {
-		c.log.INFO.Printf("Loadpoint wants to start the charger")
-	} else {
-		c.log.INFO.Printf("Loadpoint wants to stop the charger")
+	current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
+	if err == nil && current < 6 {
+		c.log.INFO.Printf("set charger into correct mode after plugin")
+		if enable {
+			c.log.INFO.Printf("start the charger")
+		} else {
+			c.log.INFO.Printf("pause the charger")
+		}
+		_ = c.Enable(enable) // set charger into correct mode (pause or start) after plugin
+		_ = c.MaxCurrentMillis(6)
 	}
-	c.lp_enabled = enable
 	cmd := zaptec.CmdStopChargingFinal
 	if enable {
 		cmd = zaptec.CmdResumeCharging
