@@ -262,7 +262,7 @@ func (c *Zaptec) Enabled() (bool, error) {
 func (c *Zaptec) Enable(enable bool) error {
 	if enable {
 		c.log.INFO.Printf("Loadpoint wants to start the charger")
-	} else
+	} else {
 		c.log.INFO.Printf("Loadpoint wants to stop the charger")
 	}
 	c.lp_enabled = enable
