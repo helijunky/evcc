@@ -211,6 +211,13 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		err = c.MaxCurrentMillis(0)
 		//return api.StatusA, err
 	}
+	if currentStatus == zaptec.OpModeConnectedRequesting {
+		current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
+		c.log.INFO.Printf("setting charger into pause mode after plugin")
+		if err == nil && current < 6 {
+			err = c.Enable(false)
+		}
+	}
 	c.lastStatus = currentStatus
 	switch currentStatus {
 	case zaptec.OpModeDisconnected:
@@ -274,12 +281,11 @@ func (c *Zaptec) Enable(enable bool) error {
 	if err == nil {
 		current, err := res2.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
 		if err == nil && current < 6 {
-			c.log.INFO.Printf("set charger into correct mode after plugin")
 			if enable {
-				c.log.INFO.Printf("set current to 6A")
+				c.log.INFO.Printf("setting current to 6A")
 				_ = c.MaxCurrentMillis(6)
 			} else {
-				c.log.INFO.Printf("charger paused, leaving current at 0A")
+				c.log.INFO.Printf("leaving current below 6A")
 			}
 		}
 	}
