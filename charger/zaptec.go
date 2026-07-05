@@ -231,8 +231,12 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		c.enabled = false
 		return api.StatusA, err
 	case zaptec.OpModeConnectedRequesting:
-		c.log.INFO.Printf("OpModeConnectedRequesting. Setting enabled=false")
-		c.enabled = false
+		c.log.INFO.Printf("OpModeConnectedRequesting. Not changing enabled flag.")
+		if c.enabled {
+			c.log.INFO.Printf("enabled==true")
+		} else {
+			c.log.INFO.Printf("enabled==false")
+		}
 		return api.StatusB, err
 	case zaptec.OpModeConnectedFinished:
 		c.log.INFO.Printf("OpModeConnectedFinished. Setting enabled=false")
