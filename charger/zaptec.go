@@ -260,6 +260,11 @@ func (c *Zaptec) Enabled() (bool, error) {
 
 // Enable implements the api.Charger interface
 func (c *Zaptec) Enable(enable bool) error {
+	if enable {
+		c.log.INFO.Printf("Loadpoint wants to start the charger")
+	} else
+		c.log.INFO.Printf("Loadpoint wants to stop the charger")
+	}
 	c.lp_enabled = enable
 	cmd := zaptec.CmdStopChargingFinal
 	if enable {
