@@ -206,40 +206,47 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 	}
 
 	if currentStatus == zaptec.OpModeDisconnected && currentStatus != c.lastStatus {
-		c.enabled = false
+		//c.enabled = false
+		c.log.INFO.Printf("setting MaxCurrent to 0 to prevent auto-start at next plugin")
 		err = c.MaxCurrentMillis(0)
-		return api.StatusA, err
+		//return api.StatusA, err
 	}
 	if currentStatus == zaptec.OpModeConnectedRequesting && currentStatus != c.lastStatus {
-		go func() {
-			time.Sleep(time.Second * 5)
-			if !c.enabled {
-				_ = c.Enable(false)
-			}
-		}()
+		c.log.INFO.Printf("set charger into correct pause mode after plugin")
+		_ = c.Enable(false) // set charger into correct pause mode after plugin
 	}
 	c.lastStatus = currentStatus
 	switch currentStatus {
 	case zaptec.OpModeDisconnected:
+		c.log.INFO.Printf("OpModeDisconnected. Setting enabled=false")
+		c.enabled = false
 		return api.StatusA, err
-	case zaptec.OpModeConnectedRequesting, zaptec.OpModeConnectedFinished:
+	case zaptec.OpModeConnectedRequesting:
+		c.log.INFO.Printf("OpModeConnectedRequesting. Setting enabled=false")
+		c.enabled = false
+		return api.StatusB, err
+	case zaptec.OpModeConnectedFinished:
+		c.log.INFO.Printf("OpModeConnectedFinished. Setting enabled=false")
+		c.enabled = false
 		return api.StatusB, err
 	case zaptec.OpModeConnectedCharging:
-		if c.enabled {
-			return api.StatusC, err
-		}
-		return api.StatusB, err
+		c.log.INFO.Printf("OpModeConnectedCharging. Setting enabled=true")
+		c.enabled = true
+		return api.StatusC, err
 	default:
 		if err == nil {
 			err = fmt.Errorf("unknown status: %d", currentStatus)
 		}
+		c.log.INFO.Printf("unknown status: %d", currentStatus)
 		return api.StatusNone, err
 	}
 }
 
 // Enabled implements the api.Charger interface
 func (c *Zaptec) Enabled() (bool, error) {
-	return c.enabled, nil
+	res, err := c.statusG.Get()
+	return c.enabled && !res.ObservationByID(zaptec.FinalStopActive).Bool(), err
+	//return c.enabled, nil
 }
 
 // Enable implements the api.Charger interface
