@@ -247,9 +247,9 @@ func (c *Zaptec) Enabled() (bool, error) {
 
 // Enable implements the api.Charger interface
 func (c *Zaptec) Enable(enable bool) error {
-	res, err := c.statusG.Get()
+	res2, err := c.statusG.Get()
 	if err == nil {
-		current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
+		current, err := res2.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
 		if err == nil && current < 6 {
 			c.log.INFO.Printf("set charger into correct mode after plugin")
 			if enable {
