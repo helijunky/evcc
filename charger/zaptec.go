@@ -52,6 +52,7 @@ type Zaptec struct {
 	instance   zaptec.Charger
 	version    int
 	enabled    bool
+	lp_enabled bool
 	priority   bool
 	passive    bool
 	lastStatus int
@@ -211,12 +212,14 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 		err = c.MaxCurrentMillis(0)
 		//return api.StatusA, err
 	}
-	if currentStatus == zaptec.OpModeConnectedRequesting {
-		current, err := res.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
+	if currentStatus == zaptec.OpModeConnectedRequesting && !c.lp_enabled {
 		c.log.INFO.Printf("setting charger into pause mode after plugin")
-		if err == nil && current < 6 {
-			err = c.Enable(false)
-		}
+		_ = c.Enable(false)
+	}
+	if (currentStatus == zaptec.OpModeConnectedFinished || currentStatus == zaptec.OpModeConnectedRequesting) && c.lp_enabled {
+		c.log.INFO.Printf("enabling charger and setting current to 6A")
+		_ = c.Enable(true)
+		_ = c.MaxCurrentMillis(6)
 	}
 	c.lastStatus = currentStatus
 	switch currentStatus {
@@ -259,6 +262,7 @@ func (c *Zaptec) Enable(enable bool) error {
 	} else {
 		c.log.INFO.Printf("charger disable")
 	}
+	c.lp_enabled = enable
 	cmd := zaptec.CmdStopChargingFinal
 	if enable {
 		cmd = zaptec.CmdResumeCharging
@@ -275,19 +279,6 @@ func (c *Zaptec) Enable(enable bool) error {
 	if err := c.DoJSON(req, &res); err == nil || res.Code == 528 {
 		c.enabled = enable
 		c.statusG.Reset()
-	}
-
-	res2, err := c.statusG.Get()
-	if err == nil {
-		current, err := res2.ObservationByID(zaptec.ChargerMaxCurrent).Float64()
-		if err == nil && current < 6 {
-			if enable {
-				c.log.INFO.Printf("setting current to 6A")
-				_ = c.MaxCurrentMillis(6)
-			} else {
-				c.log.INFO.Printf("leaving current below 6A")
-			}
-		}
 	}
 
 	return nil
