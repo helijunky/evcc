@@ -222,6 +222,7 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 				c.log.INFO.Printf("pausing charger")
 			}
 			_ = c.Enable(c.lp_enabled) // set charger into correct mode (pause or start) after plugin
+			_ = c.MaxCurrentMillis(6)
 		}
 	}
 	c.lastStatus = currentStatus
