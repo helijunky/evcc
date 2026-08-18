@@ -33,11 +33,11 @@ params:
       de: Automatischen Ladestart verhindern
       en: Prevent automatic charging
     help:
-      de: Legt fest, wie beim Einstecken eines Fahrzeugs ein automatischer Ladestart verhindert wird. maxCurrent0 setzt den maximalen Ladestrom vor dem Einstecken auf 0 A. stopCommand sendet einen finalen Stoppbefehl. Ohne Auswahl wird keine Aktion ausgeführt.
-      en: Selects how automatic charging is prevented when a vehicle is plugged in. maxCurrent0 sets the maximum charging current to 0 A before plug-in. stopCommand sends a final stop command. When unset, no action is taken.
-    type: choice
-    choice: [maxCurrent0, stopCommand]
+      de: Verhindert einen automatischen Ladestart beim Einstecken eines Fahrzeugs.
+      en: Prevents automatic charging when a vehicle is plugged in.
+    type: bool
     advanced: true
+    default: false
 render: |
   type: zaptec
   id: {{ .id }}

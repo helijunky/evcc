@@ -44,13 +44,6 @@ import (
 
 const _ZaptecGo2PhaseSwitchCurrent = 32.0 // threshold (in A) at which Zaptec Go 2 switches to single-phase according to product/protocol specs
 
-type autoStartPrevention string
-
-const (
-	_AutoStartPreventionMaxCurrent0 autoStartPrevention = "maxCurrent0"
-	_AutoStartPreventionStopCommand autoStartPrevention = "stopCommand"
-)
-
 type Zaptec struct {
 	*request.Helper
 	implement.Caps
@@ -61,7 +54,7 @@ type Zaptec struct {
 	enabled         bool
 	priority        bool
 	passive         bool
-	startPrevention autoStartPrevention
+	startPrevention bool
 	lastStatus      int
 
 	session      string    // last seen SessionIdentifier
@@ -80,7 +73,7 @@ func NewZaptecFromConfig(ctx context.Context, other map[string]any) (api.Charger
 		Priority            bool
 		Passive             bool
 		Cache               time.Duration
-		AutoStartPrevention autoStartPrevention
+		AutoStartPrevention bool
 	}{
 		Cache: time.Second,
 	}
@@ -97,7 +90,7 @@ func NewZaptecFromConfig(ctx context.Context, other map[string]any) (api.Charger
 }
 
 // NewZaptec creates Zaptec charger
-func NewZaptec(_ context.Context, user, password, id string, priority bool, passive bool, cache time.Duration, startPrevention autoStartPrevention) (api.Charger, error) {
+func NewZaptec(_ context.Context, user, password, id string, priority bool, passive bool, cache time.Duration, startPrevention bool) (api.Charger, error) {
 	log := util.NewLogger("zaptec").Redact(user, password)
 
 	if !sponsor.IsAuthorized() {
@@ -235,14 +228,11 @@ func (c *Zaptec) Status() (api.ChargeStatus, error) {
 }
 
 func (c *Zaptec) preventAutoStart() error {
-	switch c.startPrevention {
-	case _AutoStartPreventionMaxCurrent0:
-		return c.MaxCurrentMillis(0)
-	case _AutoStartPreventionStopCommand:
-		return c.Enable(false)
-	default:
+	if !c.startPrevention {
 		return nil
 	}
+
+	return c.MaxCurrentMillis(0)
 }
 
 // Enabled implements the api.Charger interface
